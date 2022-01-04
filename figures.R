@@ -14,6 +14,7 @@ library('gridExtra')
 library('viridis')
 library('incidence')
 library('forestplot')
+library('cowplot')
 
 
 
@@ -24,7 +25,7 @@ library('forestplot')
 
 Design <- c("Retrospective \ncohort","Randomised \ncontrolled trial", 
             "Systematic review/ \nmeta-analysis", "Test-negative \ndesign", 
-            "Case-control", " Prospective cohort")
+            "Case-control", "Prospective cohort")
 Design <- 
   factor(
   Design, 
@@ -65,8 +66,15 @@ Fig3 <-
   theme_bw() +
   ylab("") +
   xlab("Number of studies") +
-  labs(fill = "Absolute \nVE reported")
+  labs(fill = "Absolute \nVE reported") +
+  theme(
+    text = element_text(size=6)
+    ) +
+  guides(
+    fill = guide_legend(override.aes = list(size = 4))
+    )
 
+save_plot("Figure3.pdf", Fig3, base_width = 3.34, base_height = 1.8)
 
 
 ## Figure 4: Bias assessment
@@ -113,7 +121,7 @@ Fig4A <-
     aes(x = Domain, y=Proportion)
     ) +
   geom_col(
-    aes(fill = Assessment), position = "fill", colour="black"
+    aes(fill = Assessment), position = "fill", colour="black", size = 0.2
     ) +
   coord_flip() + 
   scale_fill_manual(
@@ -121,21 +129,25 @@ Fig4A <-
     ) +
   theme_minimal() + 
   theme(legend.position = "bottom",
-                          legend.title = element_blank(),
-                          legend.background = element_blank(),
-                          legend.box.background = element_rect(colour = "black"),
-                          panel.grid.major = element_blank(),
-                          axis.line.x = element_line(colour = "black", 
-                                                     size = 0.8, linetype = "solid"),
-                          axis.text.x = element_text(size=10),
-                          axis.text.y = element_text(size=10)
-        ) +
+        legend.title = element_blank(),
+        legend.background = element_blank(),
+        legend.box.background = element_rect(colour = "black"),
+        text = element_text(size = 6),
+        panel.grid.major = element_blank(),
+        axis.line.x = element_line(colour = "black", size = 0.3, linetype = "solid"),
+        axis.ticks.y=element_blank(),
+        legend.key.size = unit(3, 'mm'), 
+        legend.key.height = unit(3, 'mm'), 
+        legend.key.width = unit(3, 'mm'), 
+        legend.text = element_text(size=4)
+  ) +
   scale_y_continuous(
     labels = c("0.00" = "0%", "0.25" = "25%", "0.50" = "50%", "0.75" = "75%", "1.00" = "100%")
     ) +
   labs(fill = "") + 
   ylab("Proportion of studies") + 
-  xlab("")
+  xlab("") 
+
 
 
 ### 4B: ROB2
@@ -178,20 +190,22 @@ Fig4B <- ggplot(
   rob2data, aes(x = Domainrob2, y=Proportionrob2)
   ) +
   geom_col(
-    aes(fill = Assessmentrob2), position = "fill", colour="black"
+    aes(fill = Assessmentrob2), position = "fill", colour="black", size = 0.2
     ) +
   coord_flip() + 
   theme_minimal() + 
   theme(legend.position = "bottom",
-                          legend.title = element_blank(),
-                          legend.background = element_blank(),
-                          legend.box.background = element_rect(colour = "black"),
-                          axis.text.x = element_text(size=10),
-                          axis.text.y = element_text(size=10),
-                          panel.grid.major = element_blank(),
-                          axis.line.x = element_line(colour = "black", 
-                                                     size = 0.8, linetype = "solid"),
-                          axis.ticks.y=element_blank()
+        legend.title = element_blank(),
+        legend.background = element_blank(),
+        legend.box.background = element_rect(colour = "black"),
+        text = element_text(size = 6),
+        panel.grid.major = element_blank(),
+        axis.line.x = element_line(colour = "black", size = 0.3, linetype = "solid"),
+        axis.ticks.y=element_blank(),
+        legend.key.size = unit(3, 'mm'), 
+        legend.key.height = unit(3, 'mm'), 
+        legend.key.width = unit(3, 'mm'), 
+        legend.text = element_text(size=4)
         ) +
   scale_y_continuous(
     labels=c("0.00" = "0%", "0.25" = "25%", "0.50" = "50%", "0.75" = "75%", "1.00" = "100%")
@@ -201,17 +215,20 @@ Fig4B <- ggplot(
   xlab("") + 
   scale_fill_manual(
     values = c("#BF0000", "#E2DF07", "#02C100")
-    )
+    ) 
 
 
 # Plot Figures 4 A and B on one grid
 
 ggarrange(
-  robinsi,rob2,
+  Fig4A, Fig4B,
   ncol = 1,
   heights = c(1.2,1), 
   labels = c("A", "B")
   )
+
+Fig4 <- plot_grid(Fig4A, Fig4B, ncol = 1, rel_heights = c(1.2, 1), labels = "AUTO")
+save_plot("Figure4.pdf", Fig4, base_width = 3.34, base_height = 4.5)
 
 
 
@@ -261,20 +278,21 @@ rtot <- c(7.0, 27.0, 8.0, 15.0, 0, -46.2, 4.2, -166, -9, -50, -25, 75)
 abline <- abline(lm(ytot ~ xtot))
 dataprop <- data.frame(xtot,ytot,ymintot, ymaxtot, xmintot, xmaxtot, Comparison)  
 
-ggplot(
+Fig5 <- 
+  ggplot(
   data = dataprop, aes(x=xtot, y=ytot, color=Comparison)
   ) +
+  geom_abline(
+    aes(intercept = 18.1511, slope = 0.5295), color = "grey", size = 0.3
+  ) +
   geom_point(
-    size=2
+    size=0.8
     ) +
   geom_errorbar(
-    aes(ymin = ymintot, ymax = ymaxtot), alpha = 0.5 
+    aes(ymin = ymintot, ymax = ymaxtot), alpha = 0.7, size = 0.3
     ) +
   geom_errorbarh(
-    aes(xmin = xmintot, xmax = xmaxtot), alpha = 0.5
-    ) +
-  geom_abline(
-    aes(intercept = 18.1511, slope = 0.5295), color = "grey"
+    aes(xmin = xmintot, xmax = xmaxtot), alpha = 0.7, size = 0.3
     ) +
   scale_color_viridis(
     discrete=T, labels = c("Adj vs Non-Adj", "Cell vs Egg", "HD vs SD ", "LAIV vs IIV ")
@@ -283,7 +301,16 @@ ggplot(
   ylim(c(-50,100)) +
   xlim(c(-50,100)) +
   ylab("Absolute VE of vaccine A (%)") +
-  xlab("Absolute VE of vaccine B (%)")
+  xlab("Absolute VE of vaccine B (%)") + 
+  theme(
+    text = element_text(size=6),
+    legend.key.size = unit(3, 'mm'), 
+    legend.key.height = unit(3, 'mm'), 
+    legend.key.width = unit(3, 'mm'), 
+    legend.text = element_text(size=5)
+  )
+
+save_plot("Figure5.pdf", Fig5, base_width = 3.34, base_height = 2.05)
 
 
 
